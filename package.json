@@ -1,0 +1,15 @@
+{
+  "name": "eof-normalizer",
+  "version": "1.0.0",
+  "description": "A simple Node.js script to normalize line endings",
+  "scripts": {
+    "lint": "eslint *.js"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
+
