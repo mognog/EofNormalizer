@@ -324,6 +324,16 @@ function normalizeContent(content) {
 }
 
 /**
+ * Count lines in content (number of newline characters)
+ */
+function countLines(content) {
+  if (content.length === 0) return 0;
+  // Count newlines (both \n and \r\n are normalized to \n)
+  const matches = content.match(/\n/g);
+  return matches ? matches.length : 0;
+}
+
+/**
  * Process a single file: read, normalize, and write if changed
  */
 function processFile(filepath, dryRun) {
@@ -339,12 +349,17 @@ function processFile(filepath, dryRun) {
       fs.writeFileSync(filepath, normalizedContent, 'utf8');
     }
     
+    const originalLineCount = countLines(originalContent);
+    const normalizedLineCount = countLines(normalizedContent);
+    
     return { 
       filepath, 
       changed: true, 
       error: null,
       originalLength: originalContent.length,
       normalizedLength: normalizedContent.length,
+      originalLineCount,
+      normalizedLineCount,
       dryRun
     };
   } catch (error) {
@@ -541,7 +556,15 @@ function main() {
       console.log(`\n${action} ${changed.length} file(s):`);
       changed.forEach(r => {
         const marker = args.dryRun ? '🔍' : '✓';
-        console.log(`  ${marker} ${formatPath(r.filepath)} (${r.originalLength} → ${r.normalizedLength} bytes)`);
+        const lineDiff = r.normalizedLineCount - r.originalLineCount;
+        let lineInfo = '';
+        if (lineDiff !== 0) {
+          const lineChange = lineDiff > 0 
+            ? `+${lineDiff} line${lineDiff !== 1 ? 's' : ''}`
+            : `${lineDiff} line${lineDiff !== -1 ? 's' : ''} removed`;
+          lineInfo = `, ${lineChange}`;
+        }
+        console.log(`  ${marker} ${formatPath(r.filepath)} (${r.originalLength} → ${r.normalizedLength} bytes${lineInfo})`);
       });
     } else {
       // Quiet mode: just list files

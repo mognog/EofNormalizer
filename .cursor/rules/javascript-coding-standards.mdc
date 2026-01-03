@@ -1,0 +1,60 @@
+---
+alwaysApply: true
+---
+
+# JavaScript Coding Standards (EOF Normalizer)
+
+## Principles
+- Clarity over cleverness
+- Minimal dependencies (prefer none)
+- Safe-by-default file operations
+- Small, reviewable diffs
+
+## Runtime & language
+- Modern Node.js (ES2020+)
+- No transpilation/build step
+- Prefer Node core modules over third-party packages
+
+## Structure
+- One responsibility per file
+- Keep files small (target ≤ 200 lines)
+- Prefer small functions (target ≤ 40 lines)
+
+## Naming
+- camelCase for variables/functions
+- Descriptive names (avoid vague “processStuff”)
+
+## Error handling
+- No silent failures
+- Provide contextual errors (include file paths)
+- CLI failures should exit non-zero
+
+## File safety
+- Avoid unnecessary writes (no-op if unchanged)
+- Support/maintain --dry-run for any mutation path
+- Assume files may be read-only or large
+
+## CLI behaviour
+- Deterministic output
+- Respect --quiet / --dry-run
+- No interactive prompts (CI-safe)
+
+## Comments
+- Comment *why*, not what
+- Add comments for non-obvious safety trade-offs
+
+## Tests
+- Deterministic tests
+- Add/adjust tests when behaviour changes
+- When adding new features, add corresponding unit tests
+- Ensure all unit tests pass before completing changes
+
+## Quality assurance
+- Always check for linter errors before completing changes
+- Always verify all unit tests pass before completing changes
+- Fix any linter errors or test failures introduced by changes
+
+## AI/Cursor guidance
+- Don't refactor working code without a clear benefit
+- Don't introduce abstractions "for later"
+- Match existing style and keep diffs minimal

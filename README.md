@@ -1,11 +1,10 @@
-# EOF Normalizer (Cursor Blank-Line Fix) — CLI, CI & Dev Utility
+# EOF Normalizer — CLI, CI & Dev Utility
 
 **EOF Normalizer** is a tiny **Node.js CLI tool** that **normalises end‑of‑file newlines**, converts **CRLF → LF**, and removes **unwanted trailing blank lines**.
 
-It was built as a practical workaround for an unfixed **Cursor editor** issue where Cursor can repeatedly add extra blank lines to files over time:
-https://forum.cursor.com/t/the-cursor-adds-blank-lines/143373
+Whether you're cleaning up formatting inconsistencies, fixing line ending drift in mixed‑OS teams, or dealing with editors that add extra blank lines (such as the [Cursor editor issue](https://forum.cursor.com/t/the-cursor-adds-blank-lines/143373)), this tool helps keep your codebase consistent.
 
-If you’ve ever seen noisy diffs like “+1 blank line” or CI churn because of line ending drift, this tool is for you.
+If you've ever seen noisy diffs like "+1 blank line" or CI churn because of line ending drift, this tool is for you.
 
 ---
 
@@ -24,11 +23,11 @@ If you’ve ever seen noisy diffs like “+1 blank line” or CI churn because o
 
 ## Why you might use it
 
-- 🧠 **Cursor blank-line workaround** (stop the “blank lines keep coming back” problem)
-- 🧹 Clean diffs before commits
+- 🧹 Clean diffs before commits (remove unwanted formatting changes)
 - 🚦 Enforce newline consistency in **CI**
 - 🔁 Mixed‑OS repos: Windows + macOS + Linux teams
-- 🛠️ As a general **formatting/normalisation** dev utility
+- 🧠 Fix editors that add extra blank lines (including Cursor editor)
+- 🛠️ General **formatting/normalisation** utility for any project
 
 ---
 
@@ -154,9 +153,17 @@ npm install ignore
 
 The tool will automatically detect and use the `ignore` package if it's available, providing more robust pattern matching that closely follows git's behavior.
 
-### Cursor workaround workflow
+### Basic workflow
+
+First, preview what would be changed:
+
 ```bash
 node eof-normalizer.js --dry-run
+```
+
+After reviewing the results, apply the changes:
+
+```bash
 node eof-normalizer.js
 ```
 
