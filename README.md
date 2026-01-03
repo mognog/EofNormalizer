@@ -416,7 +416,28 @@ Before submitting changes, ensure:
 
 - Use `--dry-run` first
 - Commit / back up before applying changes
-- Provided “as is” under the MIT license (no warranty)
+- Provided "as is" under the MIT license (no warranty)
+
+---
+
+## Support & maintenance expectations
+
+This project is provided **as-is** as a free utility.
+
+- The maintainer may not be able to reproduce or fix all platform-specific issues
+- Edge cases are best handled via community discussion and pull requests
+- Contributions are welcome and encouraged
+
+If you need guaranteed support, consider maintaining a fork.
+
+---
+
+## Pull requests
+
+PRs are welcome, but may not be merged immediately (or at all).
+
+This project prioritises simplicity and low maintenance. Changes that add
+complexity, dependencies, or platform-specific behaviour may be declined.
 
 ---
 
