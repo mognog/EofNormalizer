@@ -262,9 +262,13 @@ node eof-normalizer.js
 
 ---
 
-## Pre-commit hook (example)
+## Optional integrations (advanced)
 
-You’ve got two common approaches:
+These are examples only — how you use or integrate this tool is entirely your choice.
+
+### Pre-commit hook (example)
+
+You've got two common approaches:
 
 ### Option A: Simple Git hook (no dependencies)
 
@@ -314,9 +318,7 @@ npx husky add .husky/pre-commit "node eof-normalizer.js --quiet && git diff --qu
 
 Now the hook is committed and shared with the team.
 
----
-
-## GitHub Actions (CI snippet)
+### GitHub Actions (CI snippet)
 
 This workflow **fails CI if EOF Normalizer would change any files**.
 
