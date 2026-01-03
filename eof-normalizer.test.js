@@ -715,6 +715,53 @@ function testNonExistentDirectory() {
   cleanupTestDir();
 }
 
+// Test 29: Binary file exclusion
+function testBinaryFileExclusion() {
+  console.log('\n--- Test: Binary file exclusion ---');
+  setupTestDir();
+  
+  // Create text files that should be processed
+  createTestFile('test.js', 'content\r\n');
+  createTestFile('test.txt', 'content\r\n');
+  
+  // Create files with binary extensions (should be excluded)
+  // Create a simple binary file (PNG-like header) or just use the extension
+  const binaryContent = Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]); // PNG header
+  const pngPath = path.join(TEST_DIR, 'test.png');
+  fs.writeFileSync(pngPath, binaryContent);
+  
+  // Create SVG file (should be processed since it's text-based)
+  createTestFile('test.svg', '<svg></svg>\r\n');
+  
+  // Create GIF file (binary)
+  const gifContent = Buffer.from([0x47, 0x49, 0x46, 0x38]); // GIF header
+  const gifPath = path.join(TEST_DIR, 'test.gif');
+  fs.writeFileSync(gifPath, gifContent);
+  
+  runScript(['--dir', TEST_DIR, '--quiet']);
+  
+  // Text files should be normalized
+  const jsContent = readTestFile('test.js');
+  assert(jsContent === 'content\n', 'Text file (.js) should be normalized');
+  
+  const txtContent = readTestFile('test.txt');
+  assert(txtContent === 'content\n', 'Text file (.txt) should be normalized');
+  
+  // SVG should be processed (text-based)
+  const svgContent = readTestFile('test.svg');
+  assert(svgContent === '<svg></svg>\n', 'SVG file should be processed (text-based)');
+  
+  // Binary files should NOT be processed
+  const pngContent = fs.readFileSync(pngPath);
+  assert(pngContent.equals(binaryContent), 'Binary file (.png) should not be processed');
+  
+  // GIF should NOT be processed
+  const gifContentAfter = fs.readFileSync(gifPath);
+  assert(gifContentAfter.equals(gifContent), 'Binary file (.gif) should not be processed');
+  
+  cleanupTestDir();
+}
+
 // Run all tests
 console.log('Running EOF Normalizer Tests\n');
 console.log('='.repeat(50));
@@ -747,6 +794,7 @@ testFilesWithSpaces();
 testGitIgnoreTakesPrecedence();
 testHelpFlag();
 testNonExistentDirectory();
+testBinaryFileExclusion();
 
 // Summary
 console.log('\n' + '='.repeat(50));

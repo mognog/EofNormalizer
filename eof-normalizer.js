@@ -83,6 +83,27 @@ const DEFAULT_EXTENSIONS = [
 const DEFAULT_SKIP_DIRS = ['node_modules', '.git', 'dist', 'build', '.next', 'coverage', 'migrations', '.cache', '.turbo', '.vscode', '.idea'];
 const SPECIAL_FILENAMES = ['.gitkeep', '.gitignore', '.env.example'];
 
+// Binary file extensions that should always be excluded from processing
+const BINARY_EXTENSIONS = [
+  // Images
+  '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.ico', '.webp', '.avif', '.heic', '.heif',
+  '.tiff', '.tif', '.psd', '.ai', '.eps', '.raw', '.cr2', '.nef', '.orf', '.sr2',
+  // Fonts
+  '.woff', '.woff2', '.ttf', '.otf', '.eot',
+  // Archives
+  '.zip', '.tar', '.gz', '.bz2', '.xz', '.7z', '.rar', '.cab', '.deb', '.rpm',
+  // Media
+  '.mp3', '.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv', '.m4a', '.wav', '.flac', '.ogg',
+  // Documents (binary formats)
+  '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.odt', '.ods', '.odp',
+  // Executables
+  '.exe', '.dll', '.so', '.dylib', '.bin', '.app', '.deb', '.rpm', '.msi',
+  // Database
+  '.db', '.sqlite', '.sqlite3', '.mdb', '.accdb',
+  // Other binary
+  '.class', '.jar', '.war', '.ear', '.pyc', '.pyo', '.o', '.obj', '.lib', '.a'
+];
+
 /**
  * Simple gitignore pattern parser (basic implementation)
  * Handles common patterns: *, **, /, negation, comments
@@ -317,6 +338,10 @@ Examples:
  * Check if a file should be processed based on its extension or special filename
  */
 function shouldProcessFile(filename, ext, extensions, specialFilenames, includeNoExt = false) {
+  // Never process binary file extensions
+  if (BINARY_EXTENSIONS.includes(ext.toLowerCase())) {
+    return false;
+  }
   // Always process special filenames
   if (specialFilenames.includes(filename)) {
     return true;
@@ -350,10 +375,48 @@ function countLines(content) {
 }
 
 /**
+ * Check if a file appears to be binary by examining its content
+ * Returns true if the file contains null bytes or too many non-text characters
+ */
+function isBinaryFile(filepath) {
+  try {
+    // Read first 8KB to check for binary content
+    const buffer = fs.readFileSync(filepath);
+    const sampleSize = Math.min(buffer.length, 8192);
+    const sample = buffer.slice(0, sampleSize);
+    
+    // Check for null bytes (strong indicator of binary)
+    if (sample.includes(0)) {
+      return true;
+    }
+    
+    // Check for high percentage of non-printable characters (excluding common whitespace)
+    let nonTextCount = 0;
+    for (let i = 0; i < sample.length; i++) {
+      const byte = sample[i];
+      // Allow: printable ASCII (32-126), tab (9), LF (10), CR (13)
+      if (byte < 9 || (byte > 13 && byte < 32) || byte > 126) {
+        nonTextCount++;
+      }
+    }
+    // If more than 30% non-text characters, likely binary
+    return nonTextCount / sample.length > 0.3;
+  } catch (_error) {
+    // If we can't read it, assume it's not binary (safer to skip)
+    return false;
+  }
+}
+
+/**
  * Process a single file: read, normalize, and write if changed
  */
 function processFile(filepath, dryRun) {
   try {
+    // Safety check: skip binary files even if they passed extension filtering
+    if (isBinaryFile(filepath)) {
+      return { filepath, changed: false, error: 'Binary file detected (skipped)' };
+    }
+    
     const originalContent = fs.readFileSync(filepath, 'utf8');
     const normalizedContent = normalizeContent(originalContent);
     
