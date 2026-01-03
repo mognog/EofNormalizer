@@ -66,6 +66,18 @@ node eof-normalizer.js --dry-run
 node eof-normalizer.js
 ```
 
+### Alternative: Script in a different location
+
+If you put the script in a different directory (e.g., `tools/` or a shared location), you can specify the directory to scan:
+
+```bash
+# Script in tools/, scanning src/ directory
+node tools/eof-normalizer.js --dir src --dry-run
+
+# Script in parent directory, scanning current directory
+node ../eof-normalizer.js --dir . --dry-run
+```
+
 ---
 
 ## CLI usage
