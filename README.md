@@ -276,6 +276,7 @@ jobs:
 | `LICENSE` | MIT |
 | `package.json` | Dev tooling |
 | `eslint.config.js` | Lint config |
+| `.cursor/rules/javascript-coding-standards.mdc` | Cursor IDE coding standards rules |
 | `.gitignore` | Git hygiene |
 
 ---
