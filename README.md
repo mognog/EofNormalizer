@@ -1,168 +1,234 @@
-# EOF Normalizer
+# EOF Normalizer (Cursor Blank-Line Fix) — CLI, CI & Dev Utility
 
-A simple Node.js script that fixes line endings in your code files. Converts Windows-style line endings (CRLF) to Unix-style (LF) and ensures all files end with exactly one newline.
+**EOF Normalizer** is a tiny **Node.js CLI tool** that **normalises end‑of‑file newlines**, converts **CRLF → LF**, and removes **unwanted trailing blank lines**.
 
-## ⚠️ Important: Backup Your Files First!
+It was built as a practical workaround for an unfixed **Cursor editor** issue where Cursor can repeatedly add extra blank lines to files over time:
+https://forum.cursor.com/t/the-cursor-adds-blank-lines/143373
 
-**Before running this script, please backup your files!** This script modifies files on your system. While it's designed to be safe, the author is not liable for any file damage or data loss that may occur during normalization. Always use the `--dry-run` mode first to preview changes, and ensure you have backups before making any modifications.
+If you’ve ever seen noisy diffs like “+1 blank line” or CI churn because of line ending drift, this tool is for you.
 
-## 🚀 Quick Start
+---
 
-### 1. Install Node.js
+## What it does
 
-**You need Node.js installed to run this script.** If you don't have it yet:
+- ✅ Converts Windows line endings **CRLF (`\r\n`) → LF (`\n`)**
+- ✅ Ensures **exactly one** newline at EOF
+- ✅ Removes **extra blank lines at end of file**
+- ✅ Recursively scans a folder
+- ✅ Skips common directories (e.g. `node_modules`, `.git`, build outputs)
+- ✅ Supports **dry‑run** mode (preview without changes)
+- ✅ Works with **any language** (Type GitHub: TS/JS/Python/Go/Rust/…)
 
-- **Download Node.js:** [https://nodejs.org/](https://nodejs.org/)
-- Choose the LTS (Long Term Support) version for best stability
-- After installation, verify it works by running: `node --version`
+---
 
-### 2. Download the script
+## Why you might use it
 
-Download `eof-normalizer.js` to your project folder.
+- 🧠 **Cursor blank-line workaround** (stop the “blank lines keep coming back” problem)
+- 🧹 Clean diffs before commits
+- 🚦 Enforce newline consistency in **CI**
+- 🔁 Mixed‑OS repos: Windows + macOS + Linux teams
+- 🛠️ As a general **formatting/normalisation** dev utility
 
-### 3. Test it first (recommended)
+---
+
+## Requirements
+
+- **Node.js** (recent version recommended)
+  - Download: https://nodejs.org (LTS is ideal)
+- No dependencies (built-in Node APIs only)
+
+---
+
+## Quick start
+
+### 1) Put the script in your repo
+
+You only need:
+
+```
+eof-normalizer.js
+```
+
+### 2) Preview changes (recommended)
 
 ```bash
-# Preview what would change without modifying files
 node eof-normalizer.js --dry-run
 ```
 
-### 4. Run it (after backing up!)
+### 3) Apply changes
 
 ```bash
 node eof-normalizer.js
 ```
 
-That's it! The script will automatically:
-- Find all code files in your project
-- Fix their line endings
-- Make sure they end with a single newline
+---
 
-## 📁 Project Files
-
-**For most users, you only need `eof-normalizer.js` - that's the main script!**
-
-Here's what each file in this repository is for:
-
-| File | Purpose | Do You Need It? |
-|------|---------|-----------------|
-| **`eof-normalizer.js`** | **The main script - this is what you run!** | ✅ **Yes - this is all you need!** |
-| `eof-normalizer.test.js` | Unit tests to verify the script works correctly | ❌ No - only for developers |
-| `README.md` | This documentation file | 📖 Helpful to read, but not required |
-| `LICENSE` | MIT License file | ❌ No - just legal info |
-| `package.json` | npm/pnpm configuration for development | ❌ No - only for developers who want to run tests/linting |
-| `eslint.config.js` | ESLint configuration for code quality | ❌ No - only for developers |
-| `.gitignore` | Git ignore rules | ❌ No - only for version control |
-
-**Bottom line:** Just download `eof-normalizer.js` and run it with Node.js. That's all you need!
-
-## 📋 What It Does
-
-- ✅ Converts `\r\n` (Windows) → `\n` (Unix/Mac)
-- ✅ Removes extra blank lines at the end of files
-- ✅ Adds a newline if a file is missing one
-- ✅ Skips `node_modules`, `.git`, and other build folders automatically
-
-## 💡 Common Usage
-
-**Always use `--dry-run` first to preview changes!**
+## CLI usage
 
 ```bash
-# Preview what would change (SAFE - no files modified)
-node eof-normalizer.js --dry-run
-
-# Fix all files in current directory (after backing up!)
-node eof-normalizer.js
-
-# Fix only files in a specific folder
-node eof-normalizer.js --dir src
-
-# Fix only specific file types
-node eof-normalizer.js --ext .ts,.tsx,.js
+node eof-normalizer.js [options]
 ```
 
-## 🧪 Testing
+### Options
 
-Run the test suite to verify everything works:
+| Option | Description |
+|------|------------|
+| `--dir <path>` | Directory to scan (default: current directory) |
+| `--ext <list>` | File extensions to process (e.g. `.ts,.js,.py`) |
+| `--skip <list>` | Folders to skip (comma-separated) |
+| `--dry-run` | Preview changes without modifying files |
+| `--quiet` | Minimal output (useful for CI) |
+| `--help` | Show help |
 
-```bash
-node eof-normalizer.test.js
-```
+---
 
-## 📖 All Options
+## Examples
 
-| Option | What It Does |
-|--------|--------------|
-| `--dir <path>` | Scan a specific folder (default: current folder) |
-| `--ext <extensions>` | Only process these file types (e.g., `.ts,.js`) |
-| `--skip <dirs>` | Skip these folders (e.g., `node_modules,.git`) |
-| `--dry-run` | Show what would change without modifying files |
-| `--quiet` | Only show summary (useful for automation) |
-| `--help` | Show full help message |
-
-## 🔧 Requirements
-
-- **Node.js** (any recent version) - [Download here](https://nodejs.org/)
-- **No dependencies** - uses only built-in Node.js modules
-
-> **Don't have Node.js?** Visit [nodejs.org](https://nodejs.org/) to download and install it. The LTS (Long Term Support) version is recommended.
-
-## 📝 Examples
-
-### TypeScript/JavaScript Project
+### TypeScript / JavaScript
 ```bash
 node eof-normalizer.js --dir src --ext .ts,.tsx,.js,.jsx
 ```
 
-### Preview Before Running
+### Python / Markdown / YAML
 ```bash
-# See what would change
-node eof-normalizer.js --dry-run
+node eof-normalizer.js --ext .py,.md,.yml,.yaml,.json
+```
 
-# If it looks good, run for real
+### Cursor workaround workflow
+```bash
+node eof-normalizer.js --dry-run
 node eof-normalizer.js
 ```
 
-### Add to npm Scripts
+---
 
-Add this to your `package.json`:
+## Pre-commit hook (example)
 
-```json
-{
-  "scripts": {
-    "normalize": "node eof-normalizer.js"
-  }
-}
-```
+You’ve got two common approaches:
 
-Then run:
+### Option A: Simple Git hook (no dependencies)
+
+Create `.git/hooks/pre-commit` (no file extension) with:
+
 ```bash
-npm run normalize
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Normalise files
+node eof-normalizer.js --quiet
+
+# Fail commit if anything changed (forces you to stage the changes)
+if ! git diff --quiet; then
+  echo "EOF Normalizer updated files. Please review and stage changes, then re-commit."
+  git status --porcelain
+  exit 1
+fi
 ```
 
-## 🐛 Troubleshooting
+Make it executable:
 
-**"Cannot find module" or "node is not recognized" error?**
-- Make sure Node.js is installed: `node --version`
-- If Node.js is not installed, download it from [nodejs.org](https://nodejs.org/)
-- After installing, you may need to restart your terminal/command prompt
+```bash
+chmod +x .git/hooks/pre-commit
+```
 
-**Script doesn't change files?**
-- Try `--dry-run` first to see what would change
-- Check that you have write permissions
-- Make sure the file types you want are included (use `--ext` if needed)
+**Notes**
+- This runs locally only (hooks are not committed by default).
+- It prevents “hidden” formatting changes slipping into commits.
 
-**Too many files being processed?**
-- Use `--ext` to limit file types
-- Use `--skip` to exclude folders
-- Use `--dir` to scan only specific folders
+---
 
-## 📄 License
+### Option B: Husky (shareable hooks for Node projects)
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Install Husky:
 
-**Disclaimer:** This software is provided "as is" without warranty of any kind. The author is not liable for any file damage, data loss, or other issues that may occur from using this script. Users are responsible for backing up their files before running the normalization process. Always use the `--dry-run` mode first to preview changes.
+```bash
+npm i -D husky
+npx husky init
+```
 
-## 🤝 Contributing
+Add a `pre-commit` hook:
 
-Found a bug or want to add a feature? Feel free to open an issue or submit a pull request!
+```bash
+npx husky add .husky/pre-commit "node eof-normalizer.js --quiet && git diff --quiet || (echo 'EOF Normalizer updated files. Stage changes and retry.' && git status --porcelain && exit 1)"
+```
+
+Now the hook is committed and shared with the team.
+
+---
+
+## GitHub Actions (CI snippet)
+
+This workflow **fails CI if EOF Normalizer would change any files**.
+
+Create `.github/workflows/eof-normalizer.yml`:
+
+```yaml
+name: EOF Normalizer
+
+on:
+  pull_request:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  eof-normalizer:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run EOF Normalizer
+        run: |
+          node eof-normalizer.js --quiet
+
+      - name: Fail if files changed
+        run: |
+          git diff --exit-code
+```
+
+**How it works**
+- Runs the normalizer
+- If it modified anything, `git diff --exit-code` returns non‑zero and CI fails
+- The PR author then runs the tool locally and commits the normalised changes
+
+---
+
+## Repo contents
+
+| File | Purpose |
+|---|---|
+| **`eof-normalizer.js`** | The CLI utility (most users only need this) |
+| `eof-normalizer.test.js` | Tests |
+| `README.md` | Documentation |
+| `LICENSE` | MIT |
+| `package.json` | Dev tooling |
+| `eslint.config.js` | Lint config |
+| `.gitignore` | Git hygiene |
+
+---
+
+## Safety
+
+⚠️ This tool **modifies files**.
+
+- Use `--dry-run` first
+- Commit / back up before applying changes
+- Provided “as is” under the MIT license (no warranty)
+
+---
+
+## SEO keywords (for discoverability)
+
+Cursor blank lines, Cursor adds blank lines, EOF newline, end-of-file newline, newline normalizer, CRLF to LF, line endings, trailing whitespace, trailing blank lines, formatting tool, pre-commit hook, GitHub Actions CI check.
+
+---
+
+## License
+
+MIT — see `LICENSE`.
