@@ -38,7 +38,7 @@ const path = require('path');
 let Ignore;
 try {
   Ignore = require('ignore');
-} catch (e) {
+} catch (_e) {
   Ignore = null;
 }
 
@@ -147,7 +147,7 @@ class GitIgnoreParser {
     return new RegExp(regexStr);
   }
 
-  shouldIgnore(filePath, isDirectory = false) {
+  shouldIgnore(filePath, _isDirectory = false) {
     const normalizedPath = filePath.replace(/\\/g, '/');
     let ignored = false;
 
@@ -192,7 +192,7 @@ class GitIgnoreParser {
       const content = fs.readFileSync(gitignorePath, 'utf8');
       const lines = content.split(/\r?\n/);
       return new GitIgnoreParser(lines);
-    } catch (error) {
+    } catch (_error) {
       return null;
     }
   }
@@ -210,7 +210,8 @@ function parseArgs() {
     useGitignore: true,
     dryRun: false,
     quiet: false,
-    help: false
+    help: false,
+    includeNoExt: false
   };
 
   for (let i = 0; i < process.argv.length; i++) {
@@ -242,6 +243,8 @@ function parseArgs() {
       args.dryRun = true;
     } else if (arg === '--quiet' || arg === '-q') {
       args.quiet = true;
+    } else if (arg === '--include-no-ext') {
+      args.includeNoExt = true;
     }
   }
 
@@ -284,6 +287,7 @@ Options:
   --gitignore, -g <file> Path to .gitignore file (default: ./.gitignore if exists)
                          Skips files and directories matching gitignore patterns
   --no-gitignore         Disable gitignore filtering
+  --include-no-ext       Include files with no file extension (e.g., LICENSE, README)
   --dry-run, --dry       Show what would be changed without modifying files
   --quiet, -q            Only show errors and summary
   --help, -h             Show this help message
@@ -312,8 +316,20 @@ Examples:
 /**
  * Check if a file should be processed based on its extension or special filename
  */
-function shouldProcessFile(filename, ext, extensions, specialFilenames) {
-  return specialFilenames.includes(filename) || extensions.includes(ext);
+function shouldProcessFile(filename, ext, extensions, specialFilenames, includeNoExt = false) {
+  // Always process special filenames
+  if (specialFilenames.includes(filename)) {
+    return true;
+  }
+  // Process files with matching extension
+  if (extensions.includes(ext)) {
+    return true;
+  }
+  // Process files with no extension if option is enabled
+  if (includeNoExt && ext === '') {
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -389,7 +405,7 @@ function loadGitIgnore(gitignorePath) {
         matcher: ig,
         rootDir: rootDir
       };
-    } catch (error) {
+    } catch (_error) {
       // Fall through to built-in parser
     }
   }
@@ -430,7 +446,7 @@ function isIgnored(filePath, gitignore) {
       const stat = fs.statSync(filePath);
       return gitignore.matcher.shouldIgnore(relativePath, stat.isDirectory());
     }
-  } catch (error) {
+  } catch (_error) {
     // If we can't determine, don't ignore it (safer default)
     return false;
   }
@@ -441,7 +457,7 @@ function isIgnored(filePath, gitignore) {
 /**
  * Recursively scan directory and collect all files to process
  */
-function collectFiles(dir, extensions, skipDirs, specialFilenames, gitignore = null) {
+function collectFiles(dir, extensions, skipDirs, specialFilenames, gitignore = null, includeNoExt = false) {
   const files = [];
   
   if (!fs.existsSync(dir)) {
@@ -463,11 +479,11 @@ function collectFiles(dir, extensions, skipDirs, specialFilenames, gitignore = n
     
     if (stat.isDirectory()) {
       if (!skipDirs.includes(entry)) {
-        files.push(...collectFiles(fullPath, extensions, skipDirs, specialFilenames, gitignore));
+        files.push(...collectFiles(fullPath, extensions, skipDirs, specialFilenames, gitignore, includeNoExt));
       }
     } else {
       const ext = path.extname(fullPath);
-      if (shouldProcessFile(entry, ext, extensions, specialFilenames)) {
+      if (shouldProcessFile(entry, ext, extensions, specialFilenames, includeNoExt)) {
         files.push(fullPath);
       }
     }
@@ -525,7 +541,7 @@ function main() {
   const allFiles = [];
   args.dirs.forEach(dir => {
     const absDir = path.isAbsolute(dir) ? dir : path.join(process.cwd(), dir);
-    const files = collectFiles(absDir, args.extensions, args.skipDirs, SPECIAL_FILENAMES, gitignore);
+    const files = collectFiles(absDir, args.extensions, args.skipDirs, SPECIAL_FILENAMES, gitignore, args.includeNoExt);
     if (!args.quiet) {
       console.log(`  ${dir}: found ${files.length} files`);
     }

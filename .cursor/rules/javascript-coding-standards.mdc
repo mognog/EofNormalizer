@@ -53,6 +53,7 @@ alwaysApply: true
 - Always check for linter errors before completing changes
 - Always verify all unit tests pass before completing changes
 - Fix any linter errors or test failures introduced by changes
+- When adding new features: run linter checks and add unit tests for the new functionality
 
 ## AI/Cursor guidance
 - Don't refactor working code without a clear benefit

@@ -414,7 +414,53 @@ function testNoGitIgnoreFlag() {
   cleanupTestDir();
 }
 
-// Test 17: Gitignore - negation patterns (!)
+// Test 17: --include-no-ext flag
+function testIncludeNoExtFlag() {
+  console.log('\n--- Test: --include-no-ext flag ---');
+  setupTestDir();
+  
+  // Create files with no extension
+  createTestFile('LICENSE', 'MIT License\r\n\r\n\r\n');
+  createTestFile('README', 'Project readme\r\n\r\n');
+  createTestFile('Dockerfile', 'FROM node\r\n\r\n\r\n');
+  
+  // Create a file with extension for comparison
+  createTestFile('test.js', 'content\r\n');
+  
+  // First, test without --include-no-ext (files with no extension should be ignored)
+  runScript(['--dir', TEST_DIR, '--quiet']);
+  
+  const licenseBefore = readTestFile('LICENSE');
+  assert(licenseBefore === 'MIT License\r\n\r\n\r\n', 'LICENSE should not be processed without --include-no-ext');
+  
+  const readmeBefore = readTestFile('README');
+  assert(readmeBefore === 'Project readme\r\n\r\n', 'README should not be processed without --include-no-ext');
+  
+  // test.js should be processed (has extension)
+  const testJs = readTestFile('test.js');
+  assert(testJs === 'content\n', 'Files with extension should be processed');
+  
+  // Reset LICENSE, README, and Dockerfile
+  createTestFile('LICENSE', 'MIT License\r\n\r\n\r\n');
+  createTestFile('README', 'Project readme\r\n\r\n');
+  createTestFile('Dockerfile', 'FROM node\r\n\r\n\r\n');
+  
+  // Now test with --include-no-ext
+  runScript(['--dir', TEST_DIR, '--include-no-ext', '--quiet']);
+  
+  const licenseAfter = readTestFile('LICENSE');
+  assert(licenseAfter === 'MIT License\n', 'LICENSE should be processed with --include-no-ext');
+  
+  const readmeAfter = readTestFile('README');
+  assert(readmeAfter === 'Project readme\n', 'README should be processed with --include-no-ext');
+  
+  const dockerfileAfter = readTestFile('Dockerfile');
+  assert(dockerfileAfter === 'FROM node\n', 'Dockerfile should be processed with --include-no-ext');
+  
+  cleanupTestDir();
+}
+
+// Test 18: Gitignore - negation patterns (!)
 function testGitIgnoreNegation() {
   console.log('\n--- Test: Gitignore - negation patterns ---');
   setupTestDir();
@@ -453,7 +499,7 @@ function testGitIgnoreNegation() {
   cleanupTestDir();
 }
 
-// Test 18: Gitignore - multiple patterns
+// Test 19: Gitignore - multiple patterns
 function testGitIgnoreMultiplePatterns() {
   console.log('\n--- Test: Gitignore - multiple patterns ---');
   setupTestDir();
@@ -482,7 +528,7 @@ function testGitIgnoreMultiplePatterns() {
   cleanupTestDir();
 }
 
-// Test 19: Gitignore - comments and empty lines
+// Test 20: Gitignore - comments and empty lines
 function testGitIgnoreCommentsAndEmptyLines() {
   console.log('\n--- Test: Gitignore - comments and empty lines ---');
   setupTestDir();
@@ -506,7 +552,7 @@ function testGitIgnoreCommentsAndEmptyLines() {
   cleanupTestDir();
 }
 
-// Test 20: Gitignore - absolute patterns (leading slash)
+// Test 21: Gitignore - absolute patterns (leading slash)
 function testGitIgnoreAbsolutePatterns() {
   console.log('\n--- Test: Gitignore - absolute patterns (leading slash) ---');
   setupTestDir();
@@ -543,7 +589,7 @@ function testGitIgnoreAbsolutePatterns() {
   cleanupTestDir();
 }
 
-// Test 21: Gitignore - double asterisk patterns (**)
+// Test 22: Gitignore - double asterisk patterns (**)
 function testGitIgnoreDoubleAsterisk() {
   console.log('\n--- Test: Gitignore - double asterisk patterns ---');
   setupTestDir();
@@ -570,7 +616,7 @@ function testGitIgnoreDoubleAsterisk() {
   cleanupTestDir();
 }
 
-// Test 22: Gitignore - non-existent gitignore file
+// Test 23: Gitignore - non-existent gitignore file
 function testGitIgnoreNonExistentFile() {
   console.log('\n--- Test: Gitignore - non-existent gitignore file ---');
   setupTestDir();
@@ -587,7 +633,7 @@ function testGitIgnoreNonExistentFile() {
   cleanupTestDir();
 }
 
-// Test 23: Mixed line endings (some CRLF, some LF)
+// Test 24: Mixed line endings (some CRLF, some LF)
 function testMixedLineEndings() {
   console.log('\n--- Test: Mixed line endings ---');
   setupTestDir();
@@ -603,7 +649,7 @@ function testMixedLineEndings() {
   cleanupTestDir();
 }
 
-// Test 24: Files with spaces in names
+// Test 25: Files with spaces in names
 function testFilesWithSpaces() {
   console.log('\n--- Test: Files with spaces in names ---');
   setupTestDir();
@@ -621,7 +667,7 @@ function testFilesWithSpaces() {
   cleanupTestDir();
 }
 
-// Test 25: Gitignore takes precedence over extension matching
+// Test 26: Gitignore takes precedence over extension matching
 function testGitIgnoreTakesPrecedence() {
   console.log('\n--- Test: Gitignore takes precedence over extension matching ---');
   setupTestDir();
@@ -640,7 +686,7 @@ function testGitIgnoreTakesPrecedence() {
   cleanupTestDir();
 }
 
-// Test 26: Help flag
+// Test 27: Help flag
 function testHelpFlag() {
   console.log('\n--- Test: Help flag ---');
   setupTestDir();
@@ -653,7 +699,7 @@ function testHelpFlag() {
   cleanupTestDir();
 }
 
-// Test 27: Non-existent directory
+// Test 28: Non-existent directory
 function testNonExistentDirectory() {
   console.log('\n--- Test: Non-existent directory ---');
   setupTestDir();
@@ -689,6 +735,7 @@ testGitIgnoreWildcards();
 testGitIgnoreFileItself();
 testCustomGitIgnorePath();
 testNoGitIgnoreFlag();
+testIncludeNoExtFlag();
 testGitIgnoreNegation();
 testGitIgnoreMultiplePatterns();
 testGitIgnoreCommentsAndEmptyLines();

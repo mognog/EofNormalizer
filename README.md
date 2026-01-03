@@ -103,6 +103,7 @@ node eof-normalizer.js [options]
 | `--skip <list>` | Folders to skip (comma-separated) |
 | `--gitignore <file>` | Path to `.gitignore` file (default: `./.gitignore` if exists) |
 | `--no-gitignore` | Disable gitignore filtering |
+| `--include-no-ext` | Include files with no file extension (e.g., `LICENSE`, `README`) |
 | `--dry-run` | Preview changes without modifying files |
 | `--quiet` | Minimal output (useful for CI) |
 | `--help` | Show help |
@@ -172,6 +173,15 @@ npm install ignore
 ```
 
 The tool will automatically detect and use the `ignore` package if it's available, providing more robust pattern matching that closely follows git's behavior.
+
+### Including files with no extension
+
+By default, files without extensions (like `LICENSE`, `README`, `Dockerfile`) are not processed. Use `--include-no-ext` to include them:
+
+```bash
+# Include files with no extension (e.g., LICENSE, README)
+node eof-normalizer.js --include-no-ext --dry-run
+```
 
 ### Example: Scanning a different directory with custom gitignore
 
@@ -322,6 +332,42 @@ jobs:
 - Runs the normalizer
 - If it modified anything, `git diff --exit-code` returns non‑zero and CI fails
 - The PR author then runs the tool locally and commits the normalised changes
+
+---
+
+## Development
+
+If you're modifying or contributing to this script, follow these steps to ensure code quality:
+
+### Run linting
+
+Check for linting errors:
+
+```bash
+pnpm lint
+```
+
+Or with npm:
+
+```bash
+npm run lint
+```
+
+### Run unit tests
+
+Run all unit tests:
+
+```bash
+node eof-normalizer.test.js
+```
+
+### Before committing
+
+Before submitting changes, ensure:
+- ✅ All linting checks pass (`pnpm lint`)
+- ✅ All unit tests pass (`node eof-normalizer.test.js`)
+- ✅ New features include corresponding unit tests
+- ✅ No linter errors are introduced
 
 ---
 
