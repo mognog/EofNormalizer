@@ -183,6 +183,30 @@ By default, files without extensions (like `LICENSE`, `README`, `Dockerfile`) ar
 node eof-normalizer.js --include-no-ext --dry-run
 ```
 
+**Sample output:**
+
+```
+Starting EOF normalization...
+
+🔍 DRY RUN MODE - No files will be modified
+
+Using .gitignore rules (built-in parser): C:\Dev\MyProject\.gitignore
+
+Scanning directories...
+  C:\Dev\MyProject: found 8 files
+
+Total files to scan: 8
+
+Processing files...
+
+--- Results ---
+
+Would fix 1 file(s):
+  🔍 LICENSE (1089 → 1056 bytes, -6 lines removed)
+
+Would fix 1 of 8 files.
+```
+
 ### Example: Scanning a different directory with custom gitignore
 
 When scanning a directory outside your current location, you can specify both the target directory and its `.gitignore` file:
