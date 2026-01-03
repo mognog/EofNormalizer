@@ -76,7 +76,15 @@ node tools/eof-normalizer.js --dir src --dry-run
 
 # Script in parent directory, scanning current directory
 node ../eof-normalizer.js --dir . --dry-run
+
+# Using a .gitignore from the scanned directory
+node tools/eof-normalizer.js --dir src --gitignore src/.gitignore --dry-run
+
+# Paths with spaces must be quoted
+node "C:/My Tools/eof-normalizer.js" --dir "My Project/src" --dry-run
 ```
+
+**Note:** Replace `tools/eof-normalizer.js` with your script path, `src` with your target directory, and `src/.gitignore` with the path to the `.gitignore` file in the directory you're scanning.
 
 ---
 
