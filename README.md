@@ -361,6 +361,79 @@ jobs:
 
 ---
 
+### Optional: Integrating EofNormalizer into a Cursor MCP Server
+
+If you use **Cursor** and want to trigger EOF Normalizer as part of an MCP workflow, you can run it via an MCP server. This allows Cursor to invoke the existing CLI script programmatically.
+
+> **Note:** This integration has **not been formally tested** in this repository.
+> The example below shows the **intended and theoretical approach** based on Cursor's MCP model and is provided as a starting point rather than a supported feature.
+
+For the latest and most accurate MCP implementation details, see the official Cursor documentation:
+
+👉 [https://cursor.com/docs/context/mcp](https://cursor.com/docs/context/mcp)
+
+---
+
+#### Minimal MCP Server Wrapper (Conceptual)
+
+You would typically create a small MCP server wrapper that shells out to the existing CLI script. For example:
+
+```
+mcp/
+  ├── package.json
+  └── mcp-server.js
+```
+
+The MCP server would:
+
+* Accept requests from Cursor
+* Execute `node eof-normalizer.js` with the supplied arguments
+* Return a summary of the result
+
+> This repository intentionally does **not** include a full MCP server implementation, as MCP APIs and best practices may evolve. Refer to the Cursor docs for concrete implementation guidance.
+
+---
+
+#### Example `mcp.json` Configuration (Illustrative)
+
+The following example demonstrates how EOF Normalizer *could* be registered as an MCP server in Cursor. Paths are anonymised and must be adjusted to match your local setup:
+
+```json
+{
+  "mcpServers": {
+    "eof-normalizer": {
+      "command": "node",
+      "args": [
+        "/PATH/TO/mcp/mcp-server.js"
+      ],
+      "env": {
+        "NODE_ENV": "production",
+        "EOF_NORMALIZER_SCRIPT": "/PATH/TO/EofNormalizer/eof-normalizer.js"
+      }
+    }
+  }
+}
+```
+
+> This configuration is illustrative only and has not been validated end-to-end.
+
+---
+
+#### Why include this example?
+
+* Shows how the tool fits into **modern Cursor workflows**
+* Provides a concrete reference without over-specifying implementation
+* Leaves flexibility for users to adapt the approach to their own MCP setup
+
+---
+
+#### Support expectations
+
+MCP integration is **community-driven**.
+If you build and refine an MCP wrapper for this tool, contributions or examples are welcome — but this repository does not aim to provide official MCP support.
+
+---
+
 ## Development
 
 If you're modifying or contributing to this script, follow these steps to ensure code quality:
