@@ -16,8 +16,9 @@ If you’ve ever seen noisy diffs like “+1 blank line” or CI churn because o
 - ✅ Removes **extra blank lines at end of file**
 - ✅ Recursively scans a folder
 - ✅ Skips common directories (e.g. `node_modules`, `.git`, build outputs)
+- ✅ **Respects `.gitignore` files** (automatically skips binaries, generated files, etc.)
 - ✅ Supports **dry‑run** mode (preview without changes)
-- ✅ Works with **any language** (Type GitHub: TS/JS/Python/Go/Rust/…)
+- ✅ Works with **any language** (TS/JS/Python/Go/Rust/C#/C++/Pascal/Vue/etc.)
 
 ---
 
@@ -35,7 +36,12 @@ If you’ve ever seen noisy diffs like “+1 blank line” or CI churn because o
 
 - **Node.js** (recent version recommended)
   - Download: https://nodejs.org (LTS is ideal)
-- No dependencies (built-in Node APIs only)
+- **No dependencies required** (built-in Node APIs only)
+  - Optional: Install `ignore` package for enhanced gitignore pattern matching:
+    ```bash
+    npm install ignore
+    ```
+    (Works fine without it, but the `ignore` package provides more accurate gitignore parsing)
 
 ---
 
@@ -76,6 +82,8 @@ node eof-normalizer.js [options]
 | `--dir <path>` | Directory to scan (default: current directory) |
 | `--ext <list>` | File extensions to process (e.g. `.ts,.js,.py`) |
 | `--skip <list>` | Folders to skip (comma-separated) |
+| `--gitignore <file>` | Path to `.gitignore` file (default: `./.gitignore` if exists) |
+| `--no-gitignore` | Disable gitignore filtering |
 | `--dry-run` | Preview changes without modifying files |
 | `--quiet` | Minimal output (useful for CI) |
 | `--help` | Show help |
@@ -84,15 +92,67 @@ node eof-normalizer.js [options]
 
 ## Examples
 
-### TypeScript / JavaScript
+### All languages (default - now includes C#, C++, Go, Rust, Pascal, Vue, and more)
 ```bash
-node eof-normalizer.js --dir src --ext .ts,.tsx,.js,.jsx
+node eof-normalizer.js
+```
+
+### TypeScript / JavaScript / Vue / Angular
+```bash
+node eof-normalizer.js --dir src --ext .ts,.tsx,.js,.jsx,.vue
+```
+
+### C# / .NET
+```bash
+node eof-normalizer.js --dir . --ext .cs,.csx
+```
+
+### C / C++
+```bash
+node eof-normalizer.js --dir . --ext .c,.cpp,.h,.hpp,.hxx,.cxx,.cc
+```
+
+### Go
+```bash
+node eof-normalizer.js --dir . --ext .go
+```
+
+### Rust
+```bash
+node eof-normalizer.js --dir . --ext .rs
+```
+
+### Pascal / Delphi
+```bash
+node eof-normalizer.js --dir . --ext .pas,.pp,.p
 ```
 
 ### Python / Markdown / YAML
 ```bash
 node eof-normalizer.js --ext .py,.md,.yml,.yaml,.json
 ```
+
+### Using with .gitignore (recommended)
+```bash
+# Automatically uses ./.gitignore if it exists
+node eof-normalizer.js
+
+# Use a custom gitignore file
+node eof-normalizer.js --gitignore .myignore
+
+# Disable gitignore filtering
+node eof-normalizer.js --no-gitignore
+```
+
+**Note about gitignore support:** The `.gitignore` feature was added to help distinguish source files from generated files, binaries, and build artifacts across all project types (C#, C++, Go, Rust, Python, JavaScript, etc.). Since `.gitignore` files are language-agnostic and commonly used to exclude non-source files, this provides a universal way to identify which files should be normalized.
+
+The built-in parser handles most common patterns, but has some limitations (particularly with complex negation patterns). If you need more accurate gitignore matching, you can install the optional `ignore` package:
+
+```bash
+npm install ignore
+```
+
+The tool will automatically detect and use the `ignore` package if it's available, providing more robust pattern matching that closely follows git's behavior.
 
 ### Cursor workaround workflow
 ```bash
