@@ -173,6 +173,45 @@ npm install ignore
 
 The tool will automatically detect and use the `ignore` package if it's available, providing more robust pattern matching that closely follows git's behavior.
 
+### Example: Scanning a different directory with custom gitignore
+
+When scanning a directory outside your current location, you can specify both the target directory and its `.gitignore` file:
+
+```bash
+node eof-normalizer.js --dir "C:\Dev\MyProject" --gitignore "C:\Dev\MyProject\.gitignore" --dry-run
+```
+
+**Sample output:**
+
+```
+Starting EOF normalization...
+
+🔍 DRY RUN MODE - No files will be modified
+
+Using .gitignore rules (built-in parser): C:\Dev\MyProject\.gitignore
+
+Scanning directories...
+  C:\Dev\MyProject: found 2761 files
+
+Total files to scan: 2761
+
+Processing files...
+
+--- Results ---
+
+Would fix 100 file(s):
+  🔍 C:\Dev\MyProject\.github\renovate.json (2324 → 2257 bytes, +1 line)
+  🔍 C:\Dev\MyProject\.github\scripts\check-schema-drift.sh (1765 → 1764 bytes, -1 line removed)
+  🔍 C:\Dev\MyProject\.github\workflows\ci.yml (14799 → 14797 bytes, -2 lines removed)
+  🔍 C:\Dev\MyProject\.secrets\dev\.gitkeep (56 → 53 bytes, -1 line removed)
+  🔍 C:\Dev\MyProject\.secrets\prod\.gitkeep (56 → 53 bytes, -1 line removed)
+  🔍 C:\Dev\MyProject\.secrets\README.md (2015 → 2014 bytes, -1 line removed)
+  🔍 C:\Dev\MyProject\.serena\.gitignore (8 → 7 bytes)
+  ... (93 more files)
+
+Would fix 100 of 2761 files.
+```
+
 ### Basic workflow
 
 First, preview what would be changed:
