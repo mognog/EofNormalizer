@@ -719,46 +719,242 @@ function testNonExistentDirectory() {
 function testBinaryFileExclusion() {
   console.log('\n--- Test: Binary file exclusion ---');
   setupTestDir();
-  
+
   // Create text files that should be processed
   createTestFile('test.js', 'content\r\n');
   createTestFile('test.txt', 'content\r\n');
-  
+
   // Create files with binary extensions (should be excluded)
   // Create a simple binary file (PNG-like header) or just use the extension
   const binaryContent = Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]); // PNG header
   const pngPath = path.join(TEST_DIR, 'test.png');
   fs.writeFileSync(pngPath, binaryContent);
-  
+
   // Create SVG file (should be processed since it's text-based)
   createTestFile('test.svg', '<svg></svg>\r\n');
-  
+
   // Create GIF file (binary)
   const gifContent = Buffer.from([0x47, 0x49, 0x46, 0x38]); // GIF header
   const gifPath = path.join(TEST_DIR, 'test.gif');
   fs.writeFileSync(gifPath, gifContent);
-  
+
   runScript(['--dir', TEST_DIR, '--quiet']);
-  
+
   // Text files should be normalized
   const jsContent = readTestFile('test.js');
   assert(jsContent === 'content\n', 'Text file (.js) should be normalized');
-  
+
   const txtContent = readTestFile('test.txt');
   assert(txtContent === 'content\n', 'Text file (.txt) should be normalized');
-  
+
   // SVG should be processed (text-based)
   const svgContent = readTestFile('test.svg');
   assert(svgContent === '<svg></svg>\n', 'SVG file should be processed (text-based)');
-  
+
   // Binary files should NOT be processed
   const pngContent = fs.readFileSync(pngPath);
   assert(pngContent.equals(binaryContent), 'Binary file (.png) should not be processed');
-  
+
   // GIF should NOT be processed
   const gifContentAfter = fs.readFileSync(gifPath);
   assert(gifContentAfter.equals(gifContent), 'Binary file (.gif) should not be processed');
-  
+
+  cleanupTestDir();
+}
+
+// Test 30: --blank-lines with 0 (no newline at EOF)
+function testBlankLinesZero() {
+  console.log('\n--- Test: --blank-lines 0 (no newline at EOF) ---');
+  setupTestDir();
+
+  createTestFile('test.js', 'content\r\n\r\n');
+
+  runScript(['--dir', TEST_DIR, '--blank-lines', '0', '--quiet']);
+
+  const normalized = readTestFile('test.js');
+  assert(normalized === 'content', 'File should end with no newline when --blank-lines 0');
+
+  cleanupTestDir();
+}
+
+// Test 31: --blank-lines with 1 (default, one newline)
+function testBlankLinesOne() {
+  console.log('\n--- Test: --blank-lines 1 (default) ---');
+  setupTestDir();
+
+  createTestFile('test.js', 'content\r\n\r\n\r\n');
+
+  runScript(['--dir', TEST_DIR, '--blank-lines', '1', '--quiet']);
+
+  const normalized = readTestFile('test.js');
+  assert(normalized === 'content\n', 'File should end with one newline when --blank-lines 1');
+
+  cleanupTestDir();
+}
+
+// Test 32: --blank-lines with 2 (two newlines, one visible blank line)
+function testBlankLinesTwo() {
+  console.log('\n--- Test: --blank-lines 2 (two newlines) ---');
+  setupTestDir();
+
+  createTestFile('test.js', 'content\r\n');
+
+  runScript(['--dir', TEST_DIR, '--blank-lines', '2', '--quiet']);
+
+  const normalized = readTestFile('test.js');
+  assert(normalized === 'content\n\n', 'File should end with two newlines when --blank-lines 2');
+
+  cleanupTestDir();
+}
+
+// Test 33: --blank-lines with 5 (five newlines)
+function testBlankLinesFive() {
+  console.log('\n--- Test: --blank-lines 5 ---');
+  setupTestDir();
+
+  createTestFile('test.js', 'content\r\n\r\n');
+
+  runScript(['--dir', TEST_DIR, '--blank-lines', '5', '--quiet']);
+
+  const normalized = readTestFile('test.js');
+  assert(normalized === 'content\n\n\n\n\n', 'File should end with five newlines when --blank-lines 5');
+
+  cleanupTestDir();
+}
+
+// Test 34: --blank-lines with 10 (maximum allowed)
+function testBlankLinesTen() {
+  console.log('\n--- Test: --blank-lines 10 (maximum) ---');
+  setupTestDir();
+
+  createTestFile('test.js', 'content\r\n');
+
+  runScript(['--dir', TEST_DIR, '--blank-lines', '10', '--quiet']);
+
+  const normalized = readTestFile('test.js');
+  assert(normalized === 'content\n\n\n\n\n\n\n\n\n\n', 'File should end with ten newlines when --blank-lines 10');
+
+  cleanupTestDir();
+}
+
+// Test 35: --blank-lines with invalid value (should use default)
+function testBlankLinesInvalid() {
+  console.log('\n--- Test: --blank-lines with invalid value ---');
+  setupTestDir();
+
+  createTestFile('test1.js', 'content\r\n\r\n');
+  createTestFile('test2.js', 'content\r\n\r\n');
+  createTestFile('test3.js', 'content\r\n\r\n');
+
+  // Test with value above maximum (should use default)
+  runScript(['--dir', TEST_DIR, '--blank-lines', '15', '--quiet']);
+
+  const test1 = readTestFile('test1.js');
+  assert(test1 === 'content\n', 'Invalid value above max should use default (1)');
+
+  // Reset file
+  createTestFile('test2.js', 'content\r\n\r\n');
+
+  // Test with negative value (should use default)
+  runScript(['--dir', TEST_DIR, '--blank-lines', '-1', '--quiet']);
+
+  const test2 = readTestFile('test2.js');
+  assert(test2 === 'content\n', 'Negative value should use default (1)');
+
+  // Reset file
+  createTestFile('test3.js', 'content\r\n\r\n');
+
+  // Test with non-numeric value (should use default)
+  runScript(['--dir', TEST_DIR, '--blank-lines', 'abc', '--quiet']);
+
+  const test3 = readTestFile('test3.js');
+  assert(test3 === 'content\n', 'Non-numeric value should use default (1)');
+
+  cleanupTestDir();
+}
+
+// Test 36: --blank-lines with 0 on empty file
+function testBlankLinesZeroEmptyFile() {
+  console.log('\n--- Test: --blank-lines 0 on empty file ---');
+  setupTestDir();
+
+  createTestFile('empty.js', '');
+
+  runScript(['--dir', TEST_DIR, '--blank-lines', '0', '--quiet']);
+
+  const normalized = readTestFile('empty.js');
+  assert(normalized === '', 'Empty file should remain empty with --blank-lines 0');
+
+  cleanupTestDir();
+}
+
+// Test 37: --blank-lines with 3 on empty file
+function testBlankLinesThreeEmptyFile() {
+  console.log('\n--- Test: --blank-lines 3 on empty file ---');
+  setupTestDir();
+
+  createTestFile('empty.js', '');
+
+  runScript(['--dir', TEST_DIR, '--blank-lines', '3', '--quiet']);
+
+  const normalized = readTestFile('empty.js');
+  assert(normalized === '\n\n\n', 'Empty file should get three newlines with --blank-lines 3');
+
+  cleanupTestDir();
+}
+
+// Test 38: --blank-lines preserves file content (only affects EOF)
+function testBlankLinesPreservesContent() {
+  console.log('\n--- Test: --blank-lines preserves file content ---');
+  setupTestDir();
+
+  const content = 'line1\nline2\n\nline3\nline4\r\n\r\n\r\n';
+  createTestFile('test.js', content);
+
+  runScript(['--dir', TEST_DIR, '--blank-lines', '2', '--quiet']);
+
+  const normalized = readTestFile('test.js');
+  assert(normalized === 'line1\nline2\n\nline3\nline4\n\n', 'Content should be preserved, only EOF should change');
+
+  cleanupTestDir();
+}
+
+// Test 39: --blank-lines works with --dry-run
+function testBlankLinesDryRun() {
+  console.log('\n--- Test: --blank-lines with --dry-run ---');
+  setupTestDir();
+
+  const content = 'content\r\n\r\n';
+  createTestFile('test.js', content);
+
+  runScript(['--dir', TEST_DIR, '--blank-lines', '3', '--dry-run', '--quiet']);
+
+  // File should not be modified in dry-run mode
+  const unchanged = readTestFile('test.js');
+  assert(unchanged === content, 'File should not be modified in dry-run mode with --blank-lines');
+
+  cleanupTestDir();
+}
+
+// Test 40: --blank-lines with multiple files
+function testBlankLinesMultipleFiles() {
+  console.log('\n--- Test: --blank-lines with multiple files ---');
+  setupTestDir();
+
+  createTestFile('test1.js', 'content1\r\n\r\n');
+  createTestFile('test2.js', 'content2\n\n\n');
+  createTestFile('test3.js', 'content3');
+
+  runScript(['--dir', TEST_DIR, '--blank-lines', '2', '--quiet']);
+
+  const test1 = readTestFile('test1.js');
+  const test2 = readTestFile('test2.js');
+  const test3 = readTestFile('test3.js');
+
+  assert(test1 === 'content1\n\n', 'First file should have two newlines at EOF');
+  assert(test2 === 'content2\n\n', 'Second file should have two newlines at EOF');
+  assert(test3 === 'content3\n\n', 'Third file should have two newlines at EOF');
+
   cleanupTestDir();
 }
 
@@ -795,6 +991,17 @@ testGitIgnoreTakesPrecedence();
 testHelpFlag();
 testNonExistentDirectory();
 testBinaryFileExclusion();
+testBlankLinesZero();
+testBlankLinesOne();
+testBlankLinesTwo();
+testBlankLinesFive();
+testBlankLinesTen();
+testBlankLinesInvalid();
+testBlankLinesZeroEmptyFile();
+testBlankLinesThreeEmptyFile();
+testBlankLinesPreservesContent();
+testBlankLinesDryRun();
+testBlankLinesMultipleFiles();
 
 // Summary
 console.log('\n' + '='.repeat(50));

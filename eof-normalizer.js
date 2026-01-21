@@ -16,6 +16,7 @@
  *   --dir <path>        Directory to scan (default: current directory)
  *   --ext <extensions>  Comma-separated file extensions (default: common extensions)
  *   --skip <dirs>       Comma-separated directories to skip (default: common build dirs)
+ *   --blank-lines <n>   Number of blank lines to add at EOF (0-10, default: 1)
  *   --dry-run           Show what would be changed without modifying files
  *   --quiet             Only show errors and summary
  *   --help              Show this help message
@@ -232,7 +233,8 @@ function parseArgs() {
     dryRun: false,
     quiet: false,
     help: false,
-    includeNoExt: false
+    includeNoExt: false,
+    blankLines: 1
   };
 
   for (let i = 0; i < process.argv.length; i++) {
@@ -266,6 +268,11 @@ function parseArgs() {
       args.quiet = true;
     } else if (arg === '--include-no-ext') {
       args.includeNoExt = true;
+    } else if (arg === '--blank-lines' || arg === '-b') {
+      const blankLines = parseInt(process.argv[++i], 10);
+      if (!isNaN(blankLines) && blankLines >= 0 && blankLines <= 10) {
+        args.blankLines = blankLines;
+      }
     }
   }
 
@@ -309,6 +316,8 @@ Options:
                          Skips files and directories matching gitignore patterns
   --no-gitignore         Disable gitignore filtering
   --include-no-ext       Include files with no file extension (e.g., LICENSE, README)
+  --blank-lines, -b <n>  Number of blank lines to add at end of file (0-10)
+                         Default: 1
   --dry-run, --dry       Show what would be changed without modifying files
   --quiet, -q            Only show errors and summary
   --help, -h             Show this help message
@@ -358,10 +367,16 @@ function shouldProcessFile(filename, ext, extensions, specialFilenames, includeN
 }
 
 /**
- * Normalize file content: convert CRLF to LF and ensure single newline at EOF
+ * Normalize file content: convert CRLF to LF and ensure specified number of newlines at EOF
+ * @param {string} content - The file content to normalize
+ * @param {number} blankLines - Number of blank lines to add at EOF (0-10, default: 1)
  */
-function normalizeContent(content) {
-  return content.replace(/\r\n/g, '\n').replace(/[\s\n]*$/, '\n');
+function normalizeContent(content, blankLines = 1) {
+  // Clamp blankLines to valid range
+  const lines = Math.max(0, Math.min(10, blankLines));
+  // Convert CRLF to LF, then remove all trailing whitespace/newlines and add specified number of newlines
+  const eofNewlines = '\n'.repeat(lines);
+  return content.replace(/\r\n/g, '\n').replace(/[\s\n]*$/, eofNewlines);
 }
 
 /**
@@ -410,30 +425,30 @@ function isBinaryFile(filepath) {
 /**
  * Process a single file: read, normalize, and write if changed
  */
-function processFile(filepath, dryRun) {
+function processFile(filepath, dryRun, blankLines = 1) {
   try {
     // Safety check: skip binary files even if they passed extension filtering
     if (isBinaryFile(filepath)) {
       return { filepath, changed: false, error: 'Binary file detected (skipped)' };
     }
-    
+
     const originalContent = fs.readFileSync(filepath, 'utf8');
-    const normalizedContent = normalizeContent(originalContent);
-    
+    const normalizedContent = normalizeContent(originalContent, blankLines);
+
     if (originalContent === normalizedContent) {
       return { filepath, changed: false, error: null };
     }
-    
+
     if (!dryRun) {
       fs.writeFileSync(filepath, normalizedContent, 'utf8');
     }
-    
+
     const originalLineCount = countLines(originalContent);
     const normalizedLineCount = countLines(normalizedContent);
-    
-    return { 
-      filepath, 
-      changed: true, 
+
+    return {
+      filepath,
+      changed: true,
       error: null,
       originalLength: originalContent.length,
       normalizedLength: normalizedContent.length,
@@ -619,7 +634,7 @@ function main() {
   if (!args.quiet && allFiles.length > 0) {
     console.log('Processing files...');
   }
-  const results = allFiles.map(file => processFile(file, args.dryRun));
+  const results = allFiles.map(file => processFile(file, args.dryRun, args.blankLines));
 
   // Step 3: Analyze and report results
   const changed = results.filter(r => r.changed);

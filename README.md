@@ -11,7 +11,7 @@ If you've ever seen noisy diffs like "+1 blank line" or CI churn because of line
 ## What it does
 
 - ✅ Converts Windows line endings **CRLF (`\r\n`) → LF (`\n`)**
-- ✅ Ensures **exactly one** newline at EOF
+- ✅ Ensures **configurable number of blank lines** at EOF (default: 1, range: 0-10)
 - ✅ Removes **extra blank lines at end of file**
 - ✅ Recursively scans a folder
 - ✅ Skips common directories (e.g. `node_modules`, `.git`, build outputs)
@@ -104,6 +104,7 @@ node eof-normalizer.js [options]
 | `--gitignore <file>` | Path to `.gitignore` file (default: `./.gitignore` if exists) |
 | `--no-gitignore` | Disable gitignore filtering |
 | `--include-no-ext` | Include files with no file extension (e.g., `LICENSE`, `README`) |
+| `--blank-lines <n>` | Number of blank lines at end of file (0-10, default: 1) |
 | `--dry-run` | Preview changes without modifying files |
 | `--quiet` | Minimal output (useful for CI) |
 | `--help` | Show help |
@@ -151,6 +152,26 @@ node eof-normalizer.js --dir . --ext .pas,.pp,.p
 ```bash
 node eof-normalizer.js --ext .py,.md,.yml,.yaml,.json
 ```
+
+### Configuring blank lines at end of file
+
+By default, the tool ensures exactly one newline at EOF. You can customize this:
+
+```bash
+# No blank lines at EOF (file ends immediately after last character)
+node eof-normalizer.js --blank-lines 0
+
+# Two blank lines at EOF (default is 1)
+node eof-normalizer.js --blank-lines 2
+
+# Maximum of 10 blank lines at EOF
+node eof-normalizer.js --blank-lines 10
+```
+
+**Note:** The `--blank-lines` parameter controls the number of newline characters at the end of the file:
+- `--blank-lines 0` = file ends with no newline
+- `--blank-lines 1` = file ends with one newline (default, standard for most projects)
+- `--blank-lines 2` = file ends with two newlines (one blank line visible)
 
 ### Using with .gitignore (recommended)
 ```bash
